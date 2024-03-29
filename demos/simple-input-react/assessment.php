@@ -13,7 +13,7 @@ $request = '{
           "stimulus": "Simple Input React Example: What is the capital of New South Wales",
           "max_length": 10,
           "valid_response": {
-            "value": "Sydney",
+            "value": ["1", "2", "3"],
             "score": 3
            },
           "js": {

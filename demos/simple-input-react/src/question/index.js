@@ -13,7 +13,7 @@ export default class Question {
         // object to store React component states
         this.componentStates = {};
 
-        this.render().then(() =>{
+        this.render().then(() => {
             this.registerPublicMethods();
             this.registerEventsListener();
 
@@ -55,9 +55,10 @@ export default class Question {
         });
     }
 
-    renderComponent( options = {}) {
+    renderComponent(options = {}) {
         const { reactRoot, init } = this;
         const { state, question, response } = init;
+        console.log('>> lrn response', response);
 
         // manage React component states
         Object.assign(this.componentStates, options);
@@ -68,30 +69,42 @@ export default class Question {
             <SimpleInput
                 state={state}
                 maxLength={question.max_length}
-                responseValue={response || ''}
+                responseValues={response || ['', '', '']}
                 disabled={!!this.componentStates.disabled}
                 onChange={this.onValueChange}
-                requestToResetValidationUIState={this.resetValidationUIState}
+                onInputFocus={this.onInputFocus}
+                focusingIndex={this.componentStates.focusingIndex}
+                // requestToResetValidationUIState={this.resetValidationUIState}
                 validationUIState={this.componentStates.validationUIState}
                 resetState={resetState}
             />
         );
     }
 
-    onValueChange = (value) => {
+    onValueChange = (responses) => {
         // manage the state when question is reset
-        if(this.componentStates.resetState) {
+        console.log('>> responses', responses);
+        if (this.componentStates.resetState) {
             this.renderComponent({ resetState: 'attemptedAfterReset' });
         }
-        this.events.trigger('changed', value);
+
+        this.events.trigger('changed', responses);
+        this.init.response = responses;
     };
 
-    resetValidationUIState = () => {
-        this.lrnComponents.suggestedAnswersList.reset();
+    onInputFocus = (index) => {
+        console.log('>> onInputFocus', index);
         this.renderComponent({
-            validationUIState: ''
+            focusingIndex: index
         });
     }
+
+    // resetValidationUIState = () => {
+    //     this.lrnComponents.suggestedAnswersList.reset();
+    //     this.renderComponent({
+    //         validationUIState: ''
+    //     });
+    // }
 
     /**
      * Add public methods to the created question instance that is accessible during runtime
@@ -119,6 +132,21 @@ export default class Question {
 
             // re-render the component, manage the 'reset' state by yourself
             this.renderComponent({ resetState: 'reset' });
+        }
+
+        facade.setResponse = (response) => {
+            // reset the value of response
+            // this.events.trigger('resetResponse');
+
+            // set the value of response
+            const responses = [...this.init.response];
+            this.init.response = responses;
+            const focusingIndex = this.componentStates.focusingIndex;
+            responses[focusingIndex] = response;
+            this.events.trigger('changed', responses);
+
+            // update response value
+            this.renderComponent();
         }
     }
 
